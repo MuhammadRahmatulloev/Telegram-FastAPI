@@ -29,10 +29,10 @@ const useAuth = () => {
     }
   }, [setTokens, setUser, setLoading, navigate]);
 
-  const register = useCallback(async (email, username, password) => {
+  const register = useCallback(async (email, username, password, phone = null) => {
     try {
       setLoading(true);
-      await authApi.register(email, username, password);
+      await authApi.register(email, username, password, phone);
       navigate('/verify', { state: { email } });
       return { success: true };
     } catch (error) {

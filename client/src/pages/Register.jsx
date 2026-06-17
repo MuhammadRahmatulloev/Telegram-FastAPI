@@ -11,6 +11,7 @@ const Register = () => {
     email: '',
     username: '',
     password: '',
+    phone: '',
   });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
@@ -54,7 +55,8 @@ const Register = () => {
       return;
     }
 
-    const result = await register(formData.email, formData.username, formData.password);
+    const phoneValue = formData.phone ? '+992' + formData.phone : null;
+    const result = await register(formData.email, formData.username, formData.password, phoneValue);
     if (!result.success) {
       setApiError(result.error);
     }
@@ -180,6 +182,44 @@ const Register = () => {
                   {errors.username}
                 </div>
               )}
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '14px',
+                color: 'var(--text-secondary)',
+                marginBottom: '6px',
+              }}>
+                Phone number (optional)
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{
+                  padding: '12px',
+                  backgroundColor: 'var(--bg-primary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px 0 0 8px',
+                  color: 'var(--text-secondary)',
+                  fontSize: '14px',
+                }}>+992</span>
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="__ ___ ____"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    backgroundColor: 'var(--bg-primary)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '0 8px 8px 0',
+                    color: 'white',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
             </div>
 
             <div>

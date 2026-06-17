@@ -3,7 +3,7 @@ import useUIStore from '../../store/uiStore';
 import useAuthStore from '../../store/authStore';
 
 const HamburgerMenu = () => {
-  const { isHamburgerOpen, closeHamburger, openProfile, openSettings, openNewGroupModal, openNewChannelModal } = useUIStore();
+  const { isHamburgerOpen, closeHamburger, openProfile, openSettings, openNewGroupModal, openNewChannelModal, openContacts } = useUIStore();
   const { user } = useAuthStore();
 
   const getInitials = (name) => {
@@ -123,7 +123,7 @@ const HamburgerMenu = () => {
           <MenuItem icon="💎" text="Telegram Premium" badge="NEW" onClick={() => {}} />
           <MenuItem icon="👥" text="New Group" onClick={() => { closeHamburger(); openNewGroupModal(); }} />
           <MenuItem icon="📢" text="New Channel" onClick={() => { closeHamburger(); openNewChannelModal(); }} />
-          <MenuItem icon="👤" text="Contacts" onClick={() => {}} />
+          <MenuItem icon="👤" text="Contacts" onClick={() => { closeHamburger(); openContacts(); }} />
           <MenuItem icon="📞" text="Calls" onClick={() => { closeHamburger(); }} />
           <MenuItem icon="💾" text="Saved Messages" onClick={() => {}} />
           <MenuItem icon="⚙️" text="Settings" onClick={() => { closeHamburger(); openSettings(); }} />

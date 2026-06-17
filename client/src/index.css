@@ -109,3 +109,12 @@ textarea {
   opacity: 1;
   visibility: visible;
 }
+
+.right-panel {
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+
+.right-panel.open {
+  transform: translateX(0);
+}

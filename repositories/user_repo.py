@@ -8,8 +8,8 @@ class UserRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create(self, email: str, username: str, password_hash: str) -> User:
-        user = User(email=email, username=username, password_hash=password_hash)
+    async def create(self, email: str, username: str, password_hash: str, phone: str | None = None) -> User:
+        user = User(email=email, username=username, password_hash=password_hash, phone=phone)
         self.db.add(user)
         await self.db.commit()
         await self.db.refresh(user)

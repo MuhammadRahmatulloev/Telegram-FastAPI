@@ -3,3 +3,4 @@ from .chat import Chat, ChatMember
 from .message import Message
 from .file import File
 from .call import Call
+from .contact import Contact

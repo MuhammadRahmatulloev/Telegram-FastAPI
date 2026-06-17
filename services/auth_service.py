@@ -17,7 +17,7 @@ class AuthService:
     def generate_code(self) -> str:
         return ''.join(random.choices(string.digits, k=5))
 
-    async def register(self, email: str, username: str, password: str):
+    async def register(self, email: str, username: str, password: str, phone: str | None = None):
         existing_email = await self.user_repo.get_by_email(email)
         if existing_email:
             raise HTTPException(
@@ -31,7 +31,7 @@ class AuthService:
                 detail="Username already taken"
             )
         password_hash = hash_password(password)
-        user = await self.user_repo.create(email=email, username=username, password_hash=password_hash)
+        user = await self.user_repo.create(email=email, username=username, password_hash=password_hash, phone=phone)
         code = self.generate_code()
         expires_at = datetime.utcnow() + timedelta(minutes=5)
         await self.user_repo.delete_verification_codes(user.id)
