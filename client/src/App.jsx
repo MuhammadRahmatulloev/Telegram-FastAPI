@@ -4,6 +4,7 @@ import useAuthStore from './store/authStore';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Verify from './pages/Verify';
+import VerifyLogin from './pages/VerifyLogin';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 
@@ -42,6 +43,14 @@ function App() {
           element={
             <PublicRoute>
               <Verify />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/verify-login"
+          element={
+            <PublicRoute>
+              <VerifyLogin />
             </PublicRoute>
           }
         />

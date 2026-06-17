@@ -73,6 +73,28 @@ class AuthService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Email not verified"
             )
+        # 2FA: отправляем код на email при каждом логине
+        code = self.generate_code()
+        expires_at = datetime.utcnow() + timedelta(minutes=5)
+        await self.user_repo.delete_verification_codes(user.id)
+        await self.user_repo.create_verification_code(user.id, code, expires_at)
+        send_verification_email.delay(email, code)
+        return {"message": "code_sent", "email": email}
+
+    async def verify_login(self, email: str, code: str):
+        user = await self.user_repo.get_by_email(email)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        verification = await self.user_repo.get_verification_code(user.id, code)
+        if not verification:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired code"
+            )
+        await self.user_repo.delete_verification_codes(user.id)
         access_token = create_access_token({"sub": str(user.id)})
         refresh_token = create_refresh_token({"sub": str(user.id)})
         expires_at = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)

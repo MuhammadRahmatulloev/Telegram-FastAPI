@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from models.contact import Contact
 from models.user import User
 
@@ -10,7 +11,9 @@ class ContactRepository:
 
     async def get_contacts(self, owner_id: int) -> list[Contact]:
         result = await self.db.execute(
-            select(Contact).where(Contact.owner_id == owner_id)
+            select(Contact)
+            .where(Contact.owner_id == owner_id)
+            .options(selectinload(Contact.contact_user))
         )
         return result.scalars().all()
 

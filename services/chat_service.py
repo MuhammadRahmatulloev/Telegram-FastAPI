@@ -13,6 +13,12 @@ class ChatService:
         self.user_repo = UserRepository(db)
 
     async def create_chat(self, data: ChatCreateRequest, creator_id: int):
+        if data.chat_type == ChatType.PRIVATE and len(data.member_ids) == 1:
+            other_id = data.member_ids[0]
+            existing = await self.chat_repo.find_private_chat(creator_id, other_id)
+            if existing:
+                return await self._with_display_title(existing, creator_id)
+
         chat = await self.chat_repo.create(
             title=data.title,
             chat_type=data.chat_type,
@@ -31,6 +37,17 @@ class ChatService:
                 )
             await self.chat_repo.add_member(chat.id, user_id, is_admin=False)
 
+        return await self._with_display_title(chat, creator_id)
+
+    async def _with_display_title(self, chat, viewer_id: int):
+        """For private chats with no explicit title, show the other participant's name instead of null/'Unknown'."""
+        if chat.chat_type == ChatType.PRIVATE and not chat.title:
+            members = await self.chat_repo.get_members(chat.id)
+            other = next((m for m in members if m.user_id != viewer_id), None)
+            if other:
+                other_user = await self.user_repo.get_by_id(other.user_id)
+                if other_user:
+                    chat.title = other_user.username
         return chat
 
     async def get_chat(self, chat_id: int, user_id: int):
@@ -46,10 +63,11 @@ class ChatService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You are not a member of this chat"
             )
-        return chat
+        return await self._with_display_title(chat, user_id)
 
     async def get_user_chats(self, user_id: int):
-        return await self.chat_repo.get_user_chats(user_id)
+        chats = await self.chat_repo.get_user_chats(user_id)
+        return [await self._with_display_title(chat, user_id) for chat in chats]
 
     async def add_member(self, chat_id: int, user_id: int, requester_id: int):
         chat = await self.chat_repo.get_by_id(chat_id)

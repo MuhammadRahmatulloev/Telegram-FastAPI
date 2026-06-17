@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import useUIStore from '../../store/uiStore';
+import useContactsStore from '../../store/contactsStore';
 import { addContact } from '../../api/contactsApi';
 
 const NewContactModal = () => {
   const { isNewContactModalOpen, closeNewContactModal } = useUIStore();
+  const addContactToStore = useContactsStore((state) => state.addContact);
   const [phone, setPhone] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,14 +23,13 @@ const NewContactModal = () => {
 
     setIsLoading(true);
     try {
-      await addContact({
+      const response = await addContact({
         phone: '+992' + phone.replace(/\D/g, ''),
-        first_name: firstName.trim(),
-        last_name: lastName.trim() || null,
+        first_name: '',
+        last_name: null,
       });
+      addContactToStore(response.data);
       setPhone('');
-      setFirstName('');
-      setLastName('');
       closeNewContactModal();
     } catch (err) {
       const errorMessage = err.response?.data?.detail || 'Failed to add contact';
@@ -42,8 +41,6 @@ const NewContactModal = () => {
 
   const handleCancel = () => {
     setPhone('');
-    setFirstName('');
-    setLastName('');
     setError('');
     closeNewContactModal();
   };
@@ -91,64 +88,6 @@ const NewContactModal = () => {
           </h2>
 
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                color: 'var(--text-secondary)',
-                marginBottom: '8px',
-              }}>
-                First name *
-              </label>
-              <input
-                type="text"
-                placeholder="First name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                style={{
-                  width: '100%',
-                  backgroundColor: 'var(--bg-primary)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  padding: '12px 16px',
-                  color: 'white',
-                  fontSize: '14px',
-                  outline: 'none',
-                }}
-                onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
-                onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
-              />
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                color: 'var(--text-secondary)',
-                marginBottom: '8px',
-              }}>
-                Last name
-              </label>
-              <input
-                type="text"
-                placeholder="Last name (optional)"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                style={{
-                  width: '100%',
-                  backgroundColor: 'var(--bg-primary)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '8px',
-                  padding: '12px 16px',
-                  color: 'white',
-                  fontSize: '14px',
-                  outline: 'none',
-                }}
-                onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
-                onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
-              />
-            </div>
-
             <div style={{ marginBottom: '20px' }}>
               <label style={{
                 display: 'block',

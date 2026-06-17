@@ -11,7 +11,24 @@ const useAuth = () => {
   const login = useCallback(async (email, password) => {
     try {
       setLoading(true);
-      const { access_token, refresh_token } = await authApi.login(email, password);
+      // Теперь login только отправляет код, не возвращает токены
+      await authApi.login(email, password);
+      navigate('/verify-login', { state: { email } });
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || 'Login failed',
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, navigate]);
+
+  const verifyLogin = useCallback(async (email, code) => {
+    try {
+      setLoading(true);
+      const { access_token, refresh_token } = await authApi.verifyLogin(email, code);
       setTokens(access_token, refresh_token);
 
       const user = await usersApi.getCurrentUser();
@@ -22,7 +39,7 @@ const useAuth = () => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.detail || 'Login failed',
+        error: error.response?.data?.detail || 'Verification failed',
       };
     } finally {
       setLoading(false);
@@ -77,6 +94,7 @@ const useAuth = () => {
 
   return {
     login,
+    verifyLogin,
     register,
     verify,
     logout: logoutUser,

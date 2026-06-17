@@ -17,12 +17,12 @@ async def chat_websocket(
     chat_id: int,
     token: str = Query(...)
 ):
-    payload = decode_token(token)
-    if not payload or payload.get("type") != "access":
+    token_payload = decode_token(token)
+    if not token_payload or token_payload.get("type") != "access":
         await websocket.close(code=4001, reason="Unauthorized")
         return
 
-    user_id = int(payload.get("sub"))
+    user_id = int(token_payload.get("sub"))
 
     async with SessionLocal() as db:
         chat_repo = ChatRepository(db)
@@ -37,17 +37,24 @@ async def chat_websocket(
         while True:
             raw = await websocket.receive_text()
             try:
-                data = json.loads(raw)
+                incoming = json.loads(raw)
             except json.JSONDecodeError:
-                await websocket.send_text(json.dumps({"error": "Invalid JSON"}))
+                await websocket.send_text(json.dumps({
+                    "event": "error",
+                    "data": {"message": "Invalid JSON"}
+                }))
                 continue
 
-            action = data.get("action")
+            event = incoming.get("event")
+            payload = incoming.get("data") or {}
 
-            if action == "send_message":
-                content = data.get("content", "").strip()
+            if event == "send_message":
+                content = (payload.get("content") or "").strip()
                 if not content:
-                    await websocket.send_text(json.dumps({"error": "Empty message"}))
+                    await websocket.send_text(json.dumps({
+                        "event": "error",
+                        "data": {"message": "Empty message"}
+                    }))
                     continue
 
                 async with SessionLocal() as db:
@@ -57,7 +64,7 @@ async def chat_websocket(
                         sender_id=user_id,
                         content=content,
                         message_type=MessageType.TEXT,
-                        reply_to_id=data.get("reply_to_id")
+                        reply_to_id=payload.get("reply_to_id")
                     )
 
                 payload_out = {
@@ -74,19 +81,26 @@ async def chat_websocket(
                 }
                 await manager.broadcast_to_chat(chat_id, payload_out)
 
-            elif action == "typing":
+            elif event == "typing":
+                is_typing = bool(payload.get("is_typing", False))
                 await manager.broadcast_to_chat(
                     chat_id,
-                    {"event": "typing", "user_id": user_id},
+                    {
+                        "event": "typing",
+                        "data": {"user_id": user_id, "is_typing": is_typing}
+                    },
                     exclude=websocket
                 )
 
             else:
-                await websocket.send_text(json.dumps({"error": f"Unknown action: {action}"}))
+                await websocket.send_text(json.dumps({
+                    "event": "error",
+                    "data": {"message": f"Unknown event: {event}"}
+                }))
 
     except WebSocketDisconnect:
         manager.disconnect_from_chat(websocket, chat_id)
         await manager.broadcast_to_chat(
             chat_id,
-            {"event": "user_left", "user_id": user_id}
+            {"event": "user_left", "data": {"user_id": user_id}}
         )

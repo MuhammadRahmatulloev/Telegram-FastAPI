@@ -33,12 +33,9 @@ const MessageItem = ({ message, currentUserId }) => {
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: isOwnMessage ? 'flex-end' : 'flex-start',
-        maxWidth: '65%',
-        marginLeft: isOwnMessage ? 'auto' : '0',
-        marginRight: isOwnMessage ? '0' : 'auto',
+        width: '100%',
+        textAlign: isOwnMessage ? 'right' : 'left',
+        margin: '2px 0',
       }}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
@@ -57,7 +54,7 @@ const MessageItem = ({ message, currentUserId }) => {
 
       {isEditing ? (
         <div style={{
-          display: 'flex',
+          display: 'inline-flex',
           gap: '8px',
           alignItems: 'center',
         }}>
@@ -111,18 +108,21 @@ const MessageItem = ({ message, currentUserId }) => {
       ) : (
         <div
           style={{
+            display: 'inline-block',
             maxWidth: '65%',
+            minWidth: '60px',
             padding: '8px 12px',
             borderRadius: isOwnMessage ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-            margin: '2px 0',
             backgroundColor: isOwnMessage ? 'var(--message-out)' : 'var(--message-in)',
-            alignSelf: isOwnMessage ? 'flex-end' : 'flex-start',
+            textAlign: 'left',
           }}
         >
           <div style={{
             fontSize: '14px',
             lineHeight: '1.5',
-            wordWrap: 'break-word',
+            wordBreak: 'break-word',
+            overflowWrap: 'anywhere',
+            whiteSpace: 'pre-wrap',
             color: 'var(--text-primary)',
           }}>
             {message.content}
@@ -140,7 +140,7 @@ const MessageItem = ({ message, currentUserId }) => {
 
       {isOwnMessage && showActions && !isEditing && (
         <div style={{
-          display: 'flex',
+          display: 'inline-flex',
           gap: '12px',
           marginTop: '4px',
         }}>

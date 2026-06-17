@@ -12,10 +12,14 @@ const Sidebar = () => {
   const { user } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredChats = chats.filter((chat) =>
-    chat.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    chat.members?.some((m) => m.username?.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredChats = chats.filter((chat) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      chat.title?.toLowerCase().includes(query) ||
+      chat.members?.some((m) => m.username?.toLowerCase().includes(query))
+    );
+  });
 
   const getInitials = (name) => {
     if (!name) return '?';

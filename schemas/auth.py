@@ -13,6 +13,11 @@ class VerifyEmailRequest(BaseModel):
     code: str
 
 
+class VerifyLoginRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str

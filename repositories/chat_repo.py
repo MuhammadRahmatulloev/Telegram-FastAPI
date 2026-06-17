@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, and_
+from sqlalchemy.orm import aliased
 from models.chat import Chat, ChatMember, ChatType
 from datetime import datetime
 
@@ -14,6 +15,17 @@ class ChatRepository:
         await self.db.commit()
         await self.db.refresh(chat)
         return chat
+
+    async def find_private_chat(self, user_a: int, user_b: int) -> Chat | None:
+        cm1 = aliased(ChatMember)
+        cm2 = aliased(ChatMember)
+        result = await self.db.execute(
+            select(Chat)
+            .join(cm1, and_(cm1.chat_id == Chat.id, cm1.user_id == user_a, cm1.left_at == None))
+            .join(cm2, and_(cm2.chat_id == Chat.id, cm2.user_id == user_b, cm2.left_at == None))
+            .where(Chat.chat_type == ChatType.PRIVATE, Chat.deleted_at == None)
+        )
+        return result.scalars().first()
 
     async def get_by_id(self, chat_id: int) -> Chat | None:
         result = await self.db.execute(

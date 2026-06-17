@@ -26,6 +26,14 @@ export const login = async (email, password) => {
   return response.data;
 };
 
+export const verifyLogin = async (email, code) => {
+  const response = await axios.post('/auth/verify-login', {
+    email,
+    code,
+  });
+  return response.data;
+};
+
 export const refreshToken = async (refreshToken) => {
   const response = await axios.post('/auth/refresh', {
     refresh_token: refreshToken,

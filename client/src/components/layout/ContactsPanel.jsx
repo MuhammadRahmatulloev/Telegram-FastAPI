@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import useUIStore from '../../store/uiStore';
+import useContactsStore from '../../store/contactsStore';
 import { getContacts } from '../../api/contactsApi';
 import useChat from '../../hooks/useChat';
 
 const ContactsPanel = () => {
   const { isContactsOpen, closeContacts, openNewContactModal } = useUIStore();
   const { createNewChat } = useChat();
-  const [contacts, setContacts] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { contacts, isLoading, setContacts, setLoading } = useContactsStore();
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -17,7 +17,7 @@ const ContactsPanel = () => {
   }, [isContactsOpen]);
 
   const fetchContacts = async () => {
-    setIsLoading(true);
+    setLoading(true);
     try {
       const response = await getContacts();
       const sortedContacts = response.data.sort((a, b) => 
@@ -27,7 +27,7 @@ const ContactsPanel = () => {
     } catch (error) {
       console.error('Failed to fetch contacts:', error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
