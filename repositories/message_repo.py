@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
+from sqlalchemy.orm import selectinload
 from models.message import Message
 from datetime import datetime
 
@@ -20,20 +21,25 @@ class MessageRepository:
         self.db.add(message)
         await self.db.commit()
         await self.db.refresh(message)
-        return message
+        # Reload with sender for username
+        return await self.get_by_id(message.id)
 
     async def get_by_id(self, message_id: int) -> Message | None:
         result = await self.db.execute(
-            select(Message).where(Message.id == message_id, Message.deleted_at == None)
+            select(Message)
+            .options(selectinload(Message.sender))
+            .where(Message.id == message_id, Message.deleted_at == None)
         )
         return result.scalar_one_or_none()
 
     async def get_chat_messages(self, chat_id: int, limit: int = 50, offset: int = 0) -> list[Message]:
         result = await self.db.execute(
-            select(Message).where(
+            select(Message)
+            .options(selectinload(Message.sender))
+            .where(
                 Message.chat_id == chat_id,
                 Message.deleted_at == None
-            ).order_by(Message.created_at.desc()).limit(limit).offset(offset)
+            ).order_by(Message.created_at.asc()).limit(limit).offset(offset)
         )
         return result.scalars().all()
 

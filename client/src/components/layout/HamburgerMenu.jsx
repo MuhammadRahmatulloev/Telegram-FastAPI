@@ -1,10 +1,14 @@
 import React from 'react';
 import useUIStore from '../../store/uiStore';
 import useAuthStore from '../../store/authStore';
+import useChatStore from '../../store/chatStore';
+import * as chatsApi from '../../api/chatsApi';
+
 
 const HamburgerMenu = () => {
   const { isHamburgerOpen, closeHamburger, openProfile, openSettings, openNewGroupModal, openNewChannelModal, openContacts } = useUIStore();
   const { user } = useAuthStore();
+  const { setActiveChat, chats, addChat } = useChatStore();
 
   const getInitials = (name) => {
     if (!name) return '?';
@@ -14,6 +18,33 @@ const HamburgerMenu = () => {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const handleOpenSavedMessages = async () => {
+    closeHamburger();
+
+    const existing = chats.find(
+      (chat) =>
+        chat.chat_type === 'private' &&
+        chat.title === 'Saved Messages'
+    );
+
+    if (existing) {
+      setActiveChat(existing);
+      return;
+    }
+
+    try {
+      const chat = await chatsApi.createChat({
+        title: 'Saved Messages',
+        chat_type: 'private',
+        member_ids: [user.id],
+      });
+      addChat(chat);
+      setActiveChat(chat);
+    } catch (error) {
+      console.error('Failed to open Saved Messages:', error);
+    }
   };
 
   const MenuItem = ({ icon, text, badge, onClick }) => (
@@ -125,7 +156,7 @@ const HamburgerMenu = () => {
           <MenuItem icon="📢" text="New Channel" onClick={() => { closeHamburger(); openNewChannelModal(); }} />
           <MenuItem icon="👤" text="Contacts" onClick={() => { closeHamburger(); openContacts(); }} />
           <MenuItem icon="📞" text="Calls" onClick={() => { closeHamburger(); }} />
-          <MenuItem icon="💾" text="Saved Messages" onClick={() => {}} />
+          <MenuItem icon="💾" text="Saved Messages" onClick={handleOpenSavedMessages} />
           <MenuItem icon="⚙️" text="Settings" onClick={() => { closeHamburger(); openSettings(); }} />
           <MenuItem icon="🌙" text="Night Mode" badge="ON" onClick={() => {}} />
         </div>

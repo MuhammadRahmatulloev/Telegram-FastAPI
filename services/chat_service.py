@@ -40,14 +40,17 @@ class ChatService:
         return await self._with_display_title(chat, creator_id)
 
     async def _with_display_title(self, chat, viewer_id: int):
-        """For private chats with no explicit title, show the other participant's name instead of null/'Unknown'."""
-        if chat.chat_type == ChatType.PRIVATE and not chat.title:
+        """For private chats with no explicit title, show the other participant's name instead of null/'Unknown',
+        and attach their id so the frontend knows who to call."""
+        if chat.chat_type == ChatType.PRIVATE:
             members = await self.chat_repo.get_members(chat.id)
             other = next((m for m in members if m.user_id != viewer_id), None)
             if other:
-                other_user = await self.user_repo.get_by_id(other.user_id)
-                if other_user:
-                    chat.title = other_user.username
+                chat.other_user_id = other.user_id
+                if not chat.title:
+                    other_user = await self.user_repo.get_by_id(other.user_id)
+                    if other_user:
+                        chat.title = other_user.username
         return chat
 
     async def get_chat(self, chat_id: int, user_id: int):

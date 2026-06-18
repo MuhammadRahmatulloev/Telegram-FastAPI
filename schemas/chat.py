@@ -15,6 +15,7 @@ class ChatResponse(BaseModel):
     chat_type: ChatType
     created_by: int | None
     created_at: datetime
+    other_user_id: int | None = None
 
     class Config:
         from_attributes = True

@@ -15,8 +15,10 @@ class MessageResponse(BaseModel):
     id: int
     chat_id: int
     sender_id: int
+    sender_username: str | None = None
     content: str | None
     message_type: MessageType
+    file_id: int | None = None
     is_edited: bool
     is_read: bool
     created_at: datetime

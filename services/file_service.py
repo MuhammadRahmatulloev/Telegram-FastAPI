@@ -10,7 +10,8 @@ MAX_FILE_SIZE = 50 * 1024 * 1024
 ALLOWED_MIME_TYPES = {
     "image/jpeg", "image/png", "image/gif", "image/webp",
     "video/mp4", "video/webm",
-    "audio/mpeg", "audio/ogg", "audio/wav",
+    "audio/mpeg", "audio/ogg", "audio/wav", "audio/webm",
+    "audio/ogg; codecs=opus", "audio/webm; codecs=opus",
     "application/pdf",
     "application/zip",
     "text/plain",
@@ -23,7 +24,9 @@ class FileService:
         self.file_repo = FileRepository(db)
 
     async def upload_file(self, upload: UploadFile, owner_id: int):
-        if upload.content_type not in ALLOWED_MIME_TYPES:
+        # Normalize mime type (strip codec params for check)
+        mime_base = (upload.content_type or '').split(';')[0].strip()
+        if mime_base not in ALLOWED_MIME_TYPES and upload.content_type not in ALLOWED_MIME_TYPES:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"File type '{upload.content_type}' is not allowed"
@@ -40,6 +43,13 @@ class FileService:
 
         os.makedirs(UPLOAD_DIR, exist_ok=True)
         ext = os.path.splitext(upload.filename or "file")[1]
+        if not ext:
+            # Guess extension from mime
+            if 'webm' in (upload.content_type or ''):
+                ext = '.webm'
+            elif 'ogg' in (upload.content_type or ''):
+                ext = '.ogg'
+
         unique_name = f"{uuid.uuid4().hex}{ext}"
         file_path = os.path.join(UPLOAD_DIR, unique_name)
 
@@ -51,7 +61,7 @@ class FileService:
             file_name=upload.filename or unique_name,
             file_path=file_path,
             file_size=file_size,
-            mime_type=upload.content_type,
+            mime_type=upload.content_type or 'application/octet-stream',
         )
         return file
 
@@ -79,9 +89,7 @@ class FileService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You can only delete your own files"
             )
-        # Remove from disk
         if os.path.exists(file.file_path):
             os.remove(file.file_path)
-
         await self.file_repo.soft_delete(file_id)
         return {"message": "File deleted successfully"}

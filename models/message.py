@@ -13,6 +13,7 @@ class MessageType(str, enum.Enum):
     DOCUMENT = "document"
     VOICE = "voice"
     STICKER = "sticker"
+    SYSTEM = "system"  
 
 
 class Message(Base):

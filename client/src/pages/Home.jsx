@@ -11,6 +11,7 @@ import NewGroupModal from '../components/layout/NewGroupModal';
 import NewChannelModal from '../components/layout/NewChannelModal';
 import NewContactModal from '../components/layout/NewContactModal';
 import InfoPanel from '../components/layout/InfoPanel';
+import CallModal from '../components/layout/CallModal';
 import useUIStore from '../store/uiStore';
 
 const Home = () => {
@@ -34,6 +35,7 @@ const Home = () => {
       <NewChannelModal />
       <NewContactModal />
       <InfoPanel />
+      <CallModal />
     </div>
   );
 };
